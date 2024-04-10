@@ -24,7 +24,7 @@
         <Column field="quantity" header="Quantidade" />
         <Column header="Status">
             <template #body="slotProps">
-                <Checkbox v-model="slotProps.data.status" disabled></Checkbox>
+                <Checkbox v-model="slotProps.data.status" :binary="true" disabled></Checkbox>
             </template>
         </Column>
         <Column header="Ações">

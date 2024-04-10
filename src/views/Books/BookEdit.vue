@@ -69,25 +69,27 @@
             </div>
             <div class="p-col-12 p-md-6">
                 <label for="status">Status</label>
-                <Checkbox v-model="status" />
+                <Checkbox v-model="status" :binary="true" />
             </div>
             <div class="p-col-12 py-2">
                 <Button type="submit" class="my-2">Salvar</Button>
                 <Button type="button" severity="danger" @click="goBack()">Cancelar</Button>
             </div>
+
+            <Dialog v-model:visible="visible" modal header="Justificar troca de Status" :style="{ width: '25rem' }">
+                <div class="flex align-items-center gap-3 mb-3">
+                    <label class="font-semibold w-6rem">Justificativa</label>
+                    <Dropdown class="flex-auto" :options="reasons" optionLabel="name" v-model="reason" required />
+                </div>
+                <div class="flex justify-content-end gap-2">
+                    <Button type="button" label="Cancelar" severity="secondary" @click="visible = false"></Button>
+                    <Button type="button" label="Salvar" @click="saveJustification"></Button>
+                </div>
+            </Dialog>
+
         </form>
     </div>
 
-    <Dialog v-model:visible="visible" modal header="Justificar troca de Status" :style="{ width: '25rem' }">
-        <div class="flex align-items-center gap-3 mb-3">
-            <label for="username" class="font-semibold w-6rem">Justificativa</label>
-            <Textarea id="username" class="flex-auto" autocomplete="off" />
-        </div>
-        <div class="flex justify-content-end gap-2">
-            <Button type="button" label="Cancel" severity="secondary" @click="visible = false"></Button>
-            <Button type="button" label="Save" @click="visible = false"></Button>
-        </div>
-    </Dialog>
 
     <Toast />
 </template>
@@ -126,6 +128,12 @@ const pricingGroup = ref();
 const barcode = ref();
 const quantity = ref();
 const status = ref();
+const reason = ref();
+
+const reasons = ref([
+    { id: 1, name: "Troca de status" },
+    { id: 2, name: "Baixa Venda" }
+]);
 
 const pricingGroups = ref([
     { id: 1, name: "R$ 29,90 - R$ 44,90" },
@@ -177,7 +185,6 @@ const categories = ref([
 
 const getOneBookById = (id) => {
     book.value = JSON.parse(localStorage.getItem('books')).find(book => book.id == id);
-
     bookTitle.value = book.value.title;
     synopsis.value = book.value.synopsis;
     isbn.value = book.value.isbn;
@@ -200,7 +207,9 @@ const getOneBookById = (id) => {
 
 const saveBook = () => {
     const payload = {
+        id: book.value.id,
         title: bookTitle.value,
+        bookCode: book.value.bookCode,
         synopsis: synopsis.value,
         isbn: isbn.value,
         year: year.value,
@@ -215,16 +224,61 @@ const saveBook = () => {
         publisher: publisher.value,
         acquisitionValue: acquisitionValue.value,
         pricingGroup: pricingGroup.value,
+        barcode: book.value.barcode,
         quantity: quantity.value,
         status: status.value
     };
 
     if (status.value != book.value.status) {
         visible.value = true;
+    } else {
+        const index = books.value.findIndex(item => item.id == book.value.id);
+        books.value[index] = payload;
+
+        localStorage.setItem('books', JSON.stringify(books.value));
+
+        toast.add({ severity: 'success', summary: 'Sucesso', detail: 'Livro cadastrado com sucesso' });
+        setTimeout(() => {
+            router.push({ name: 'bookIndex' });
+        }, 1500);
     }
+};
 
+const saveJustification = () => {
+    const justification = {
+        bookId: book.value.id,
+        reason: reason.value
+    };
 
-    books.value.push(payload);
+    const justifications = JSON.parse(localStorage.getItem('justifications')) || [];
+    justifications.push(justification);
+    localStorage.setItem('justifications', JSON.stringify(justifications));
+
+    const payload = {
+        id: book.value.id,
+        title: bookTitle.value,
+        bookCode: book.value.bookCode,
+        synopsis: synopsis.value,
+        isbn: isbn.value,
+        year: year.value,
+        edition: edition.value,
+        numberOfPages: numberOfPages.value,
+        height: height.value,
+        width: width.value,
+        depth: depth.value,
+        weight: weight.value,
+        author: author.value,
+        category: category.value,
+        publisher: publisher.value,
+        acquisitionValue: acquisitionValue.value,
+        pricingGroup: pricingGroup.value,
+        barcode: book.value.barcode,
+        quantity: quantity.value,
+        status: status.value
+    };
+
+    const index = books.value.findIndex(item => item.id == book.value.id);
+    books.value[index] = payload;
 
     localStorage.setItem('books', JSON.stringify(books.value));
 
