@@ -132,7 +132,7 @@ const reason = ref();
 
 const reasons = ref([
     { id: 1, name: "Troca de status" },
-    { id: 2, name: "Baixa Venda" }
+    { id: 2, name: "Baixa Venda" },
 ]);
 
 const pricingGroups = ref([
@@ -228,6 +228,11 @@ const saveBook = () => {
         quantity: quantity.value,
         status: status.value
     };
+
+    if (payload.quantity == 0) {
+        payload.status = false;
+    }
+
 
     if (status.value != book.value.status) {
         visible.value = true;
